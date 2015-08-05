@@ -225,13 +225,109 @@
 # define PV_INT_HSYNC_START			(1 << 0)
 
 #define PV_STAT					0x2c
-# define PV_STAT_IDLE				(1 << 8)
-# define PV_STAT_RUNNING_MASK			VC4_MASK(7, 0)
 
 #define PV_HACT_ACT				0x30
 
 #define SCALER_DISPCTRL                         0x00000000
+/* Global register for clock gating the HVS */
+# define SCALER_DISPCTRL_ENABLE			(1 << 31)
+# define SCALER_DISPCTRL_DSP2EISLUR		(1 << 15)
+# define SCALER_DISPCTRL_DSP1EISLUR		(1 << 14)
+/*
+ * Enables Display 0 short line and underrun contribution to
+ * SCALER_DISPSTAT_IRQDISP0.  Note that short frame contributions are
+ * always enabled.
+ */
+# define SCALER_DISPCTRL_DSP0EISLUR		(1 << 13)
+# define SCALER_DISPCTRL_DSP2EIEOLN		(1 << 12)
+# define SCALER_DISPCTRL_DSP2EIEOF		(1 << 11)
+# define SCALER_DISPCTRL_DSP1EIEOLN		(1 << 10)
+# define SCALER_DISPCTRL_DSP1EIEOF		(1 << 9)
+/*
+ * Enables Display 0 end-of-line-N contribution to
+ * SCALER_DISPSTAT_IRQDISP0
+ */
+# define SCALER_DISPCTRL_DSP0EIEOLN		(1 << 8)
+/* Enables Display 0 EOF contribution to SCALER_DISPSTAT_IRQDISP0 */
+# define SCALER_DISPCTRL_DSP0EIEOF		(1 << 7)
+
+# define SCALER_DISPCTRL_SLVRDEIRQ		(1 << 6)
+# define SCALER_DISPCTRL_SLVWREIRQ		(1 << 5)
+# define SCALER_DISPCTRL_DMAEIRQ		(1 << 4)
+# define SCALER_DISPCTRL_DISP2EIRQ		(1 << 3)
+# define SCALER_DISPCTRL_DISP1EIRQ		(1 << 2)
+/*
+ * Enables interrupt generation on the enabled EOF/EOLN/EISLUR
+ * bits and short frames..
+ */
+# define SCALER_DISPCTRL_DISP0EIRQ		(1 << 1)
+/* Enables interrupt generation on scaler profiler interrupt. */
+# define SCALER_DISPCTRL_SCLEIRQ		(1 << 0)
+
 #define SCALER_DISPSTAT                         0x00000004
+# define SCALER_DISPSTAT_COBLOW2		(1 << 29)
+# define SCALER_DISPSTAT_EOLN2			(1 << 28)
+# define SCALER_DISPSTAT_ESFRAME2		(1 << 27)
+# define SCALER_DISPSTAT_ESLINE2		(1 << 26)
+# define SCALER_DISPSTAT_EUFLOW2		(1 << 25)
+# define SCALER_DISPSTAT_EOF2			(1 << 24)
+
+# define SCALER_DISPSTAT_COBLOW1		(1 << 21)
+# define SCALER_DISPSTAT_EOLN1			(1 << 20)
+# define SCALER_DISPSTAT_ESFRAME1		(1 << 19)
+# define SCALER_DISPSTAT_ESLINE1		(1 << 18)
+# define SCALER_DISPSTAT_EUFLOW1		(1 << 17)
+# define SCALER_DISPSTAT_EOF1			(1 << 16)
+
+# define SCALER_DISPSTAT_RESP_MASK		VC4_MASK(15, 14)
+# define SCALER_DISPSTAT_RESP_SHIFT		14
+# define SCALER_DISPSTAT_RESP_OKAY		0
+# define SCALER_DISPSTAT_RESP_EXOKAY		1
+# define SCALER_DISPSTAT_RESP_SLVERR		2
+# define SCALER_DISPSTAT_RESP_DECERR		3
+
+# define SCALER_DISPSTAT_COBLOW0		(1 << 13)
+/* Set when the DISPEOLN line is done compositing. */
+# define SCALER_DISPSTAT_EOLN0			(1 << 12)
+/*
+ * Set when VSTART is seen but there are still pixels in the current
+ * output line.
+ */
+# define SCALER_DISPSTAT_ESFRAME0		(1 << 11)
+/*
+ * Set when HSTART is seen but there are still pixels in the current
+ * output line.
+ */
+# define SCALER_DISPSTAT_ESLINE0		(1 << 10)
+/*
+ * Set when the the downstream tries to read from the display FIFO
+ * while it's empty.
+ */
+# define SCALER_DISPSTAT_EUFLOW0		(1 << 9)
+/* Set when the display mode changes from RUN to EOF */
+# define SCALER_DISPSTAT_EOF0			(1 << 8)
+
+/* Set on AXI invalid DMA ID error. */
+# define SCALER_DISPSTAT_DMA_ERROR		(1 << 7)
+/* Set on AXI slave read decode error */
+# define SCALER_DISPSTAT_IRQSLVRD		(1 << 6)
+/* Set on AXI slave write decode error */
+# define SCALER_DISPSTAT_IRQSLVWR		(1 << 5)
+/*
+ * Set when SCALER_DISPSTAT_DMA_ERROR is set, or
+ * SCALER_DISPSTAT_RESP_ERROR is not SCALER_DISPSTAT_RESP_OKAY.
+ */
+# define SCALER_DISPSTAT_IRQDMA			(1 << 4)
+# define SCALER_DISPSTAT_IRQDISP2		(1 << 3)
+# define SCALER_DISPSTAT_IRQDISP1		(1 << 2)
+/*
+ * Set when any of the EOF/EOLN/ESFRAME/ESLINE bits are set and their
+ * corresponding interrupt bit is enabled in DISPCTRL.
+ */
+# define SCALER_DISPSTAT_IRQDISP0		(1 << 1)
+/* On read, the profiler interrupt.  On write, clear *all* interrupt bits. */
+# define SCALER_DISPSTAT_IRQSCL			(1 << 0)
+
 #define SCALER_DISPID                           0x00000008
 #define SCALER_DISPECTRL                        0x0000000c
 #define SCALER_DISPPROF                         0x00000010
@@ -249,14 +345,35 @@
 #define SCALER_DISPLACT1                        0x00000034
 #define SCALER_DISPLACT2                        0x00000038
 #define SCALER_DISPCTRL0                        0x00000040
+# define SCALER_DISPCTRLX_ENABLE		(1 << 31)
+# define SCALER_DISPCTRLX_RESET			(1 << 30)
+# define SCALER_DISPCTRLX_WIDTH_MASK		VC4_MASK(23, 12)
+# define SCALER_DISPCTRLX_WIDTH_SHIFT		12
+# define SCALER_DISPCTRLX_HEIGHT_MASK		VC4_MASK(11, 0)
+# define SCALER_DISPCTRLX_HEIGHT_SHIFT		0
+
 #define SCALER_DISPBKGND0                       0x00000044
 #define SCALER_DISPSTAT0                        0x00000048
 #define SCALER_DISPBASE0                        0x0000004c
+# define SCALER_DISPSTATX_MODE_MASK		VC4_MASK(31, 30)
+# define SCALER_DISPSTATX_MODE_SHIFT		30
+# define SCALER_DISPSTATX_MODE_DISABLED		0
+# define SCALER_DISPSTATX_MODE_INIT		1
+# define SCALER_DISPSTATX_MODE_RUN		2
+# define SCALER_DISPSTATX_MODE_EOF		3
+# define SCALER_DISPSTATX_FULL			(1 << 29)
+# define SCALER_DISPSTATX_EMPTY			(1 << 28)
 #define SCALER_DISPCTRL1                        0x00000050
 #define SCALER_DISPBKGND1                       0x00000054
 #define SCALER_DISPSTAT1                        0x00000058
+#define SCALER_DISPSTATX(x)			(SCALER_DISPSTAT0 +        \
+						 (x) * (SCALER_DISPSTAT1 - \
+							SCALER_DISPSTAT0))
 #define SCALER_DISPBASE1                        0x0000005c
 #define SCALER_DISPCTRL2                        0x00000060
+#define SCALER_DISPCTRLX(x)			(SCALER_DISPCTRL0 +        \
+						 (x) * (SCALER_DISPCTRL1 - \
+							SCALER_DISPCTRL0))
 #define SCALER_DISPBKGND2                       0x00000064
 #define SCALER_DISPSTAT2                        0x00000068
 #define SCALER_DISPBASE2                        0x0000006c
