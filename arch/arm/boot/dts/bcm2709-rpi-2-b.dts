@@ -11,6 +11,7 @@
 		spi0 = &spi0;
 		i2c0 = &i2c0;
 		i2c1 = &i2c1;
+		i2c2 = &i2c2;
 		i2s  = &i2s;
 		gpio = &gpio;
 		intc = &intc;
@@ -91,6 +92,11 @@
 &i2c1 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&i2c1_pins>;
+	clock-frequency = <100000>;
+};
+
+&i2c2 {
+	pinctrl-names = "default";
 	clock-frequency = <100000>;
 };
 

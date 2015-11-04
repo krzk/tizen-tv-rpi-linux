@@ -109,6 +109,7 @@ static void bcm2708_i2c_init_pinmode(int id)
 #define SET_GPIO_ALT(g,a) *(gpio+(((g)/10))) |= (((a)<=3?(a)+4:(a)==4?3:2)<<(((g)%10)*3))
 
 	int pin;
+
 	u32 *gpio = ioremap(GPIO_BASE, SZ_16K);
 
 	BUG_ON(id != 0 && id != 1);
@@ -382,7 +383,7 @@ static int bcm2708_i2c_probe(struct platform_device *pdev)
 		goto out_clk_put;
 	}
 
-	if (!pdev->dev.of_node)
+        if (pdev->id < 2)
 		bcm2708_i2c_init_pinmode(pdev->id);
 
 	bi = kzalloc(sizeof(*bi), GFP_KERNEL);
@@ -407,6 +408,9 @@ static int bcm2708_i2c_probe(struct platform_device *pdev)
 	case 1:
 		adap->class = I2C_CLASS_DDC;
 		break;
+        case 2:
+                adap->class = I2C_CLASS_DDC;
+                break;
 	default:
 		dev_err(&pdev->dev, "can only bind to BSC 0 or 1\n");
 		err = -ENXIO;
