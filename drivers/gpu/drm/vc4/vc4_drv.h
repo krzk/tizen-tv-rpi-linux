@@ -81,6 +81,8 @@ struct vc4_dev {
 	} hangcheck;
 
 	struct semaphore async_modeset;
+
+	struct drm_fbdev_cma *fbdev;
 };
 
 static inline struct vc4_dev *

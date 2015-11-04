@@ -1876,7 +1876,7 @@ void drm_atomic_helper_connector_dpms(struct drm_connector *connector,
 	struct drm_connector *tmp_connector;
 	int ret;
 	bool active = false;
-
+return;
 	if (mode != DRM_MODE_DPMS_ON)
 		mode = DRM_MODE_DPMS_OFF;
 

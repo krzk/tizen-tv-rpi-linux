@@ -620,11 +620,11 @@ reloc_tex(struct vc4_exec_info *exec,
 		uint32_t remaining_size = tex->base.size - p0;
 		if (p0 > tex->base.size - 4) {
 			DRM_ERROR("UBO offset greater than UBO size\n");
-			goto fail;
+			return false;
 		}
 		if (p1 > remaining_size - 4) {
 			DRM_ERROR("UBO clamp would allow reads outside of UBO\n");
-			goto fail;
+			return false;
 		}
 		*validated_p0 = tex->paddr + p0;
 		return true;
@@ -643,14 +643,14 @@ reloc_tex(struct vc4_exec_info *exec,
 		    VC4_TEX_P2_PTYPE_CUBE_MAP_STRIDE) {
 			if (cube_map_stride) {
 				DRM_ERROR("Cube map stride set twice\n");
-				goto fail;
+				return false;
 			}
 
 			cube_map_stride = p3 & VC4_TEX_P2_CMST_MASK;
 		}
 		if (!cube_map_stride) {
 			DRM_ERROR("Cube map stride not set\n");
-			goto fail;
+			return false;
 		}
 	}
 
@@ -684,7 +684,7 @@ reloc_tex(struct vc4_exec_info *exec,
 	case VC4_TEXTURE_TYPE_YUV422R:
 	default:
 		DRM_ERROR("Texture format %d unsupported\n", type);
-		goto fail;
+		return false;
 	}
 	utile_w = utile_width(cpp);
 	utile_h = utile_height(cpp);
@@ -700,7 +700,7 @@ reloc_tex(struct vc4_exec_info *exec,
 
 	if (!vc4_check_tex_size(exec, tex, offset + cube_map_stride * 5,
 				tiling_format, width, height, cpp)) {
-		goto fail;
+		return false;
 	}
 
 	/* The mipmap levels are stored before the base of the texture.  Make
@@ -741,7 +741,7 @@ reloc_tex(struct vc4_exec_info *exec,
 				  i, level_width, level_height,
 				  aligned_width, aligned_height,
 				  level_size, offset);
-			goto fail;
+			return false;
 		}
 
 		offset -= level_size;
@@ -750,12 +750,6 @@ reloc_tex(struct vc4_exec_info *exec,
 	*validated_p0 = tex->paddr + p0;
 
 	return true;
- fail:
-	DRM_INFO("Texture p0 at %d: 0x%08x\n", sample->p_offset[0], p0);
-	DRM_INFO("Texture p1 at %d: 0x%08x\n", sample->p_offset[1], p1);
-	DRM_INFO("Texture p2 at %d: 0x%08x\n", sample->p_offset[2], p2);
-	DRM_INFO("Texture p3 at %d: 0x%08x\n", sample->p_offset[3], p3);
-	return false;
 }
 
 static int
@@ -863,7 +857,7 @@ validate_shader_rec(struct drm_device *dev,
 				goto fail;
 			}
 
-			validated_shader = to_vc4_bo(&bo[i]->base)->validated_shader;
+			validated_shader = vc4_validate_shader(bo[i]);
 			if (!validated_shader)
 				goto fail;
 

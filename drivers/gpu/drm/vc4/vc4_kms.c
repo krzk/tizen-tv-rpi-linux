@@ -144,6 +144,7 @@ static int vc4_atomic_commit(struct drm_device *dev,
 	 * current layout.
 	 */
 
+	async=0;
 	if (async) {
 		vc4_queue_seqno_cb(dev, &c->cb, wait_seqno,
 				   vc4_atomic_complete_commit_seqno_cb);
@@ -155,7 +156,17 @@ static int vc4_atomic_commit(struct drm_device *dev,
 	return 0;
 }
 
+static void vc4_output_poll_changed(struct drm_device *dev)
+{
+	struct vc4_dev *vc4 = to_vc4_dev(dev);
+
+	if (vc4->fbdev)
+		drm_fbdev_cma_hotplug_event(vc4->fbdev);
+}
+
+
 static const struct drm_mode_config_funcs vc4_mode_funcs = {
+	.output_poll_changed = vc4_output_poll_changed,
 	.atomic_check = drm_atomic_helper_check,
 	.atomic_commit = vc4_atomic_commit,
 	.fb_create = drm_fb_cma_create,
@@ -209,15 +220,19 @@ vc4_kms_load(struct drm_device *dev)
 	dev->mode_config.preferred_depth = 24;
 	dev->mode_config.async_page_flip = true;
 
+	dev->vblank_disable_allowed = true;
+
 	ret = vc4_init_modeset_objects(dev);
 	if (ret)
 		goto fail;
 
 	drm_mode_config_reset(dev);
 
-	drm_fbdev_cma_init(dev, 32,
-			   dev->mode_config.num_crtc,
-			   dev->mode_config.num_connector);
+	vc4->fbdev = drm_fbdev_cma_init(dev, 32,
+					dev->mode_config.num_crtc,
+					dev->mode_config.num_connector);
+	if (IS_ERR(vc4->fbdev))
+		vc4->fbdev = NULL;
 
 	drm_kms_helper_poll_init(dev);
 

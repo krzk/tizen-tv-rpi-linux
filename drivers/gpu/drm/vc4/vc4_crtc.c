@@ -93,7 +93,7 @@ static void vc4_crtc_mode_set_nofb(struct drm_crtc *crtc)
 		       ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? 1 : 0));
 	u32 format = PV_CONTROL_FORMAT_24;
 	bool debug_dump_regs = false;
-
+return;
 	if (debug_dump_regs) {
 		DRM_INFO("CRTC %d regs before:\n", drm_crtc_index(crtc));
 		vc4_crtc_dump_regs(vc4_crtc);
@@ -444,6 +444,8 @@ static int vc4_async_page_flip(struct drm_crtc *crtc,
 	struct vc4_async_flip_state *flip_state;
 	struct drm_gem_cma_object *cma_bo = drm_fb_cma_get_gem_obj(fb, 0);
 	struct vc4_bo *bo = to_vc4_bo(&cma_bo->base);
+
+//printk("[VC4 DRM] Page Flip : fb(%p), BO(%p), VADDR(%p)\n", fb, bo, cma_bo->vaddr);
 
 	flip_state = kzalloc(sizeof(*flip_state), GFP_KERNEL);
 	if (!flip_state)

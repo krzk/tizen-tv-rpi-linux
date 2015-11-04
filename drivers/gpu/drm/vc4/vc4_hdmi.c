@@ -273,7 +273,7 @@ vc4_set_pixel_clock(struct vc4_dev *vc4, u32 clock)
 {
 	u32 packet[2];
 	int ret;
-
+return;
 	packet[0] = 8; /* Pixel clock. */
 	packet[1] = clock;
 
@@ -295,6 +295,7 @@ static void vc4_hdmi_encoder_mode_set(struct drm_encoder *encoder,
 	bool debug_dump_regs = false;
 	bool hsync_pos = !(mode->flags & DRM_MODE_FLAG_NHSYNC);
 	bool vsync_pos = !(mode->flags & DRM_MODE_FLAG_NVSYNC);
+return;
 	u32 vactive = (mode->vdisplay >>
 		       ((mode->flags & DRM_MODE_FLAG_INTERLACE) ? 1 : 0));
 	u32 verta = (VC4_SET_FIELD(mode->vsync_end - mode->vsync_start,
@@ -405,7 +406,7 @@ static void vc4_hdmi_encoder_disable(struct drm_encoder *encoder)
 {
 	struct drm_device *dev = encoder->dev;
 	struct vc4_dev *vc4 = to_vc4_dev(dev);
-
+return;
 	HDMI_WRITE(VC4_HDMI_TX_PHY_RESET_CTL, 0xf << 16);
 }
 
@@ -413,6 +414,7 @@ static void vc4_hdmi_encoder_enable(struct drm_encoder *encoder)
 {
 	struct drm_device *dev = encoder->dev;
 	struct vc4_dev *vc4 = to_vc4_dev(dev);
+return;
 
 	HDMI_WRITE(VC4_HDMI_TX_PHY_RESET_CTL, 0);
 }
